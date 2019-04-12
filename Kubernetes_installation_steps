@@ -30,3 +30,33 @@ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/
 sudo apt-get update -q
 sudo apt-get install -qy kubelet=1.12.0-00 kubectl=1.12.0-00 kubeadm=1.12.0-00 kubernetes-cni=0.6.0-00
 
+# kubeadm init with pod network
+
+kubeadm init --pod-network-cidr=<CIDR>
+
+# if node join token is lost you can use below command create new join token
+
+sudo kubeadm token create --print-join-command
+
+
+# or follow the below step get existing node token 
+
+sudo kubeadm token list
+
+
+# get --discovery-token-ca-cert-hash value using
+
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | \
+   openssl dgst -sha256 -hex | sed 's/^.* //'
+
+
+# kubectl configuration
+
+sudo cp /etc/kubernetes/admin.conf $HOME/
+sudo chown $(id -u):$(id -g) $HOME/admin.conf
+export KUBECONFIG=$HOME/admin.conf
+
+# Copying admin.conf file to other servers
+
+scp kubeadmin@10.0.0.4:/etc/kubernetes/admin.conf .
+kubectl --kubeconfig ./admin.conf get nodes
